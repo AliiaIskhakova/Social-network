@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %} Профайл {{author}}{% endblock %}
+{% block content %}
+
+<main role="main" class="container">
+    <div class="row">
+            <div class="col-md-3 mb-3 mt-1">
+                    <div class="card">
+                            <div class="card-body">
+                                    <div class="h2">
+                                        <!-- Имя автора -->
+                                        {{author.first_name}} {{author.last_name}}
+                                    </div>
+                                    <div class="h3 text-muted">
+                                         <!-- username автора -->
+                                         @{{author}}
+                                    </div>
+                            </div>
+                            <ul class="list-group list-group-flush">
+                            <li class="list-group-item">
+                                <li class="list-group-item">
+                                    {% if following %}
+                                    <a class="btn btn-lg btn-light" 
+                                            href="{% url 'posts:profile_unfollow' author %}" role="button"> 
+                                            Отписаться 
+                                    </a> 
+                                    {% else %}
+                                    <a class="btn btn-lg btn-primary" 
+                                            href="{% url 'posts:profile_follow' author %}" role="button">
+                                    Подписаться 
+                                    </a>
+                                    {% endif %}
+                                </li>
+                                <div class="h6 text-muted">
+                                    Подписчиков: XXX <br />
+                                    Подписан: XXX
+                                </div>
+                            </li>
+                            <li class="list-group-item">
+                                <div class="h6 text-muted">
+                                    <!-- Количество записей -->
+                                    Записей: {{page_count}}
+                                </div>
+                            </li>
+                            </ul>
+                   </div>
+           </div>
+
+           <div class="col-md-9">
+           <!-- Повторяющиеся записи --> 
+           <!-- Начало блока с отдельным постом --> 
+           {% for post in page %}
+               {% include "post_item.html" with post=post %}
+                <!-- Конец блока с отдельным постом --> 
+           {% endfor %}
+                <!-- Остальные посты -->  
+                
+                {% if page.has_other_pages %}
+                    {% include "paginator.html" with items=page paginator=paginator%}
+                {% endif %}
+     </div>
+    </div>
+</main>
+
+{% endblock %}

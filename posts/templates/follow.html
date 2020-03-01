@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %} Подписки {% endblock %}
+
+{% block content %}
+
+    {% include "menu.html" with index=True %}
+
+    <h1> Свежее от любимых авторов</h1>
+
+    <!-- Вывод ленты записей -->
+    {% for post in page %}
+            <!-- Вот он, новый include! -->  
+            {% include "post_item.html" with post=post %}
+    
+    {% endfor %}
+
+    <!-- Вывод паджинатора -->
+    {% if page.has_other_pages %}
+        {% include "paginator.html" with items=page paginator=paginator%}
+    {% endif %}
+
+{% endblock %}
