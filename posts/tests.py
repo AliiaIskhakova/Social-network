@@ -12,6 +12,7 @@ TEST_CACHE = {
     }
 }
 
+
 class UnloginTest(TestCase):
     """проверка на редирект со страницы создания поста неавторизованного пользователя"""
     def setUp(self):

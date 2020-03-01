@@ -88,7 +88,7 @@ def post_view(request, username, post_id):
 
 
 def post_edit(request, username, post_id):
-    # Не забудьте проверить, что текущий пользователь — это автор записи.
+    # текущий пользователь — это автор записи.
     post = Post.objects.get(pk=post_id)
      
     if request.user != post.author:
@@ -166,11 +166,11 @@ def profile_follow(request, username):
     return redirect ('posts:profile', username=username)
 
 
-
 @login_required
 def profile_unfollow(request, username):
     follower = User.objects.get(username=request.user.username) #кто отписывается
     unfollow = User.objects.get(username=username) #от кого отписывается
+    
     Follow.objects.filter(user=follower, author=unfollow).delete()
 
     return redirect ('posts:profile', username=username)
