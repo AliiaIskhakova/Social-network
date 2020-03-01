@@ -155,9 +155,13 @@ def follow_index(request):
 def profile_follow(request, username):
     follower = User.objects.get(username=request.user.username) #кто подписывается
     follow = User.objects.get(username=username) #на кого подписывается
-    Follow.objects.create(user=follower, author=follow)
 
+    if follower != follow:
+        Follow.objects.create(user=follower, author=follow)
+        return redirect ('posts:profile', username=username)
+    
     return redirect ('posts:profile', username=username)
+
 
 
 @login_required
