@@ -157,9 +157,12 @@ def profile_follow(request, username):
     follow = User.objects.get(username=username) #на кого подписывается
 
     if follower != follow:
+        
+        uniq = Follow.objects.get(user=follower, author=follow).count()
+        if uniq:
+            return redirect ('posts:profile', username=username)
         Follow.objects.create(user=follower, author=follow)
-        return redirect ('posts:profile', username=username)
-    
+        
     return redirect ('posts:profile', username=username)
 
 

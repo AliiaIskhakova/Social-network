@@ -17,8 +17,7 @@ class Post(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
     group = models.ForeignKey(Group, on_delete=models.CASCADE, blank=True,
     null=True, related_name="group") 
-    image = models.ImageField(upload_to='posts/', blank=True,
-    null=True)  # поле для картинки
+    image = models.ImageField(upload_to='posts/', blank=True, null=True)  # поле для картинки
 
     def __str__ (self):
         #выводим текст поста
