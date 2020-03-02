@@ -14,13 +14,12 @@ def index(request):
     follow = False
 
     if request.user.is_authenticated:
-        favorites = Follow.objects.filter(user=request.user).count()
-        if favorites > 0:
-            follow = True
-
-    paginator = Paginator(post_list, 10) # показывать по 10 записей на странице.
-    page_number = request.GET.get('page') # переменная в URL с номером запрошенной страницы
-    page = paginator.get_page(page_number) # получить записи с нужным смещением
+        following = Follow.objects.filter(user=request.user).exists()
+        follow = True if following else False
+        
+    paginator = Paginator(post_list, 10) #  показывать по 10 записей на странице.
+    page_number = request.GET.get('page') #  переменная в URL с номером запрошенной страницы
+    page = paginator.get_page(page_number) #  получить записи с нужным смещением
 
     return render(request, 'index.html', {'page': page, 'paginator': paginator, 'follow':follow})
 
@@ -45,9 +44,9 @@ def new_post(request):
         form = PostForm(request.POST or None, files=request.FILES or None)
 
         if form.is_valid():
-            #сохраняем форму, но не отправляем в БД
+            #  сохраняем форму, но не отправляем в БД
             new_post = form.save(commit=False)
-            #получаем автора нового поста
+            #  получаем автора нового поста
             new_post.author = request.user
             new_post.save()
             return redirect('posts:index')
@@ -57,39 +56,40 @@ def new_post(request):
 
 
 def profile(request, username):
-    profile = get_object_or_404(User, username=username)
-    author = User.objects.get(username=username)
-    post = Post.objects.filter(author=author).order_by("-pub_date").all()
+    author = get_object_or_404(User, username=username)
+    posts = Post.objects.filter(author=author).order_by("-pub_date").all()
     following = False
 
-    favorites = Follow.objects.filter(user=profile, author=author).count()
-    if favorites > 0:
-        following = True
+    if request.user.is_authenticated:
+        follow = Follow.objects.filter(user=request.user, author=author).exists()
+        following = True if follow else False
     
-    paginator = Paginator(post, 10) 
+    paginator = Paginator(posts, 10) 
     page_number = request.GET.get('page') 
     page = paginator.get_page(page_number)
-    page_count = post.count()
+    page_count = posts.count()
     
-    return render(request, "profile.html", {'post':post, 'page_count':page_count, 'page': page, 'paginator': paginator, 'author':author, 'following':following})
+    return render(request, "profile.html", {'posts':posts, 'page_count':page_count, 'page': page, 'paginator': paginator, 
+        'author':author, 'following':following})
 
 
 def post_view(request, username, post_id):
     post = get_object_or_404(Post, id=post_id)
-    author = User.objects.get(username=username)
+    author = get_object_or_404(User, username=username)
 
     form = CommentForm()
-    items = Comment.objects.filter(post=post_id).all()
-    comment_count = items.count()
+    comments = Comment.objects.filter(post=post).all()
+    comment_count = comments.count()
 
     page_count = Post.objects.filter(author=author).count()
     
-    return render(request, "post.html", {'post':post, 'page_count':page_count, 'post_id':post_id, 'author':author, 'form':form, 'items':items, 'comment_count':comment_count})
+    return render(request, "post.html", {'post':post, 'page_count':page_count, 'post_id':post_id, 'author':author, 
+        'form':form, 'comments':comments, 'comment_count':comment_count})
 
 
 def post_edit(request, username, post_id):
-    # текущий пользователь — это автор записи.
-    post = Post.objects.get(pk=post_id)
+    #  текущий пользователь — это автор записи.
+    post = get_object_or_404(Post, pk=post_id)
      
     if request.user != post.author:
         return redirect('posts:post', username=post.author, post_id=post_id)
@@ -99,8 +99,7 @@ def post_edit(request, username, post_id):
         form = PostForm(request.POST or None, files=request.FILES or None, instance=post)
 
         if form.is_valid(): 
-            post = form.save(commit=True) #сохраняем форму
-            post.save() #сохраняем в БД
+            post = form.save() #  сохраняем форму и в БД
             return redirect('posts:post', username=post.author, post_id=post_id)
         return render(request, 'new.html', {'form': form, 'post':post})
             
@@ -108,8 +107,8 @@ def post_edit(request, username, post_id):
 
 
 def page_not_found(request, exception):
-    # Переменная exception содержит отладочную информацию, 
-    # выводить её в шаблон пользователской страницы 404 мы не станем
+    #  переменная exception содержит отладочную информацию, 
+    #  выводить её в шаблон пользователской страницы 404 мы не станем
     return render(request, "misc/404.html", {"path": request.path}, status=404)
 
 
@@ -121,7 +120,7 @@ def server_error(request):
 def add_comment(request, username, post_id):
     post = get_object_or_404(Post, pk=post_id)
     form = CommentForm(instance=post)
-    comments = Comment.objects.filter(post=post_id).all()
+    comments = Comment.objects.filter(post=post).all()
 
     if request.method == 'POST':
         form = CommentForm(request.POST)
@@ -140,9 +139,9 @@ def add_comment(request, username, post_id):
 @login_required
 def follow_index(request):
     """страница просмотра подписок"""
-    follow_list = Follow.objects.select_related('author', 'user').filter(user=request.user)
-    author_list = [follow.author for follow in follow_list]
-    post_list = Post.objects.filter(author__in=author_list).order_by("-pub_date").all()
+    follow = get_object_or_404(User, username=request.user.username) #кто подписывается
+    #  получаю посты авторов, на которых подписан user 
+    post_list = Post.objects.filter(author__following__user=follow).order_by("-pub_date").all()
 
     paginator = Paginator(post_list, 10) 
     page_number = request.GET.get('page') 
@@ -153,8 +152,8 @@ def follow_index(request):
 
 @login_required
 def profile_follow(request, username):
-    follower = User.objects.get(username=request.user.username) #кто подписывается
-    follow = User.objects.get(username=username) #на кого подписывается
+    follower = get_object_or_404(User, username=request.user.username) #  кто подписывается
+    follow = get_object_or_404(User, username=username) #  на кого подписывается
 
     if follower != follow:
 
@@ -168,9 +167,9 @@ def profile_follow(request, username):
 
 @login_required
 def profile_unfollow(request, username):
-    follower = User.objects.get(username=request.user.username) #кто отписывается
-    unfollow = User.objects.get(username=username) #от кого отписывается
+    follower = User.objects.get(username=request.user.username) #  кто отписывается
+    unfollow = User.objects.get(username=username) #  от кого отписывается
     
     Follow.objects.filter(user=follower, author=unfollow).delete()
 
-    return redirect ('posts:profile', username=username)
+    return redirect('posts:profile', username=username)

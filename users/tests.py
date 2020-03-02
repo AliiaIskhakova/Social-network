@@ -54,16 +54,17 @@ class FollowTest(TestCase):
         self.user2 = User.objects.create_user(
                 username="arny", email="arny.s@skynet.com", password="12345")
 
-        self.client.force_login(self.user1)
+        self.client.login(username="sarah", password="12345")
 
     def test_follow(self):
         #подписка
         response = self.client.get("/arny/follow/")
         #количество объектов где sarah является подписчиком arny
-        follow = Follow.objects.get(user='sarah',author='arny').count()
+        follow = Follow.objects.get(user=self.user1,author=self.user2).count()
         self.assertEqual(follow, 1)
+        self.assertEqual(follow.user='sarah')
 
         #отписка
         response = self.client.get("/arny/unfollow/")
-        follow = Follow.objects.get(user='sarah',author='arny').count()
+        follow = Follow.objects.get(user=self.user1,author=self.user1).count()
         self.assertEqual(follow, 0)

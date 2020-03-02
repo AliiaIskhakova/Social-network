@@ -6,11 +6,7 @@ from django.urls import reverse
 
 User = get_user_model()
 
-TEST_CACHE = {
-            'default': {
-                'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
-    }
-}
+TEST_CACHE = {'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache',}}
 
 
 class UnloginTest(TestCase):
@@ -19,10 +15,11 @@ class UnloginTest(TestCase):
         self.client = Client()
 
     def test_not_login(self):
-        # POST запрос на страницу создания поста
+        #  POST запрос на страницу создания поста
         response = self.client.post(reverse('posts:new_post'), follow=True)
-        # редирект на страницу входа, а затем на страницу создания поста
-        # так работает декоратор @login_required
+
+        #  редирект на страницу входа, а затем на страницу создания поста
+        #  так работает декоратор @login_required
         self.assertRedirects(response, '/auth/login/?next=/new/')
     
 
@@ -31,15 +28,15 @@ class PostNewTest(TestCase):
         self.client = Client() 
         self.user = User.objects.create_user(
                 username="sarah", email="connor.s@skynet.com", password="12345")
-        self.client.force_login(self.user)
+        self.client.login(username="sarah", password="12345")
         self.post = Post.objects.create(text="My post!", author=self.user)
 
     def test_new(self):
         """проверка на возможность опубликовать новый пост авторизованному пользователю"""
         response = self.client.get("/sarah/")
-        # проверяем, что при отрисовке страницы был получен список из 1 записи
-        # новый пост опубликован на странице профиля
-        self.assertEqual(len(response.context['post']), 1)
+        #  проверяем, что при отрисовке страницы был получен список из 1 записи
+        #  новый пост опубликован на странице профиля
+        self.assertEqual(len(response.context['posts']), 1)
 
 
     @override_settings(CACHES=TEST_CACHE)
@@ -54,11 +51,11 @@ class PostNewTest(TestCase):
     def test_edit(self):
         """проверка на возможность авторизованному пользователю редактировать свой пост
            отредактированный пост отображается на всех связанных с ним страницах"""
-        # GET запрос на страницу редактирования поста
+        #  GET запрос на страницу редактирования поста
         response = self.client.get("/sarah/1/edit")
         self.assertEqual(response.status_code, 301)
 
-        # редактируем пост 
+        #  редактируем пост 
         self.post.text ="Edited"
         self.post.save()
 
@@ -74,7 +71,7 @@ class ImageTest(TestCase):
         self.client = Client() 
         self.user = User.objects.create_user(
                 username="sarah", email="connor.s@skynet.com", password="12345")
-        self.client.force_login(self.user)
+        self.client.login(username="sarah", password="12345")
 
         self.group = Group.objects.create(title='super', slug='super', description='description')
         with open('media/posts/media/no-photo.jpg', 'rb') as fp: 
@@ -92,14 +89,14 @@ class ImageTest(TestCase):
         self.client = Client() 
         self.user = User.objects.create_user(
                 username="sarah", email="connor.s@skynet.com", password="12345")
-        self.client.force_login(self.user)
+        self.client.login(username="sarah", password="12345")
 
         self.group = Group.objects.create(title='super', slug='super', description='description')
         with open('media/posts/media/1.docx', 'rb') as fp: 
             self.response = self.client.post('/new/', {'group': 1, 'text': 'Text', 'image': fp}, follow=True) 
 
     def test_image(self):
-        # проверка на валидность формы загрузки изображения
+        #  проверка на валидность формы загрузки изображения
         self.assertFormError(self.response, 'form', 'image', 'Загрузите правильное изображение. Файл, который вы загрузили, поврежден или не является изображением.')
 
 
@@ -108,14 +105,14 @@ class PostFollowTest(TestCase):
     def setUp(self):
         self.client = Client() 
 
-        # создаю двух пользователей и логиню 1го
+        #  создаю двух пользователей и логиню 1го
         self.user1 = User.objects.create_user(
                 username="sarah", email="connor.s@skynet.com", password="12345")
         self.user2 = User.objects.create_user(
                 username="arny", email="arny.s@skynet.com", password="12345") 
-        self.client.force_login(self.user1)
+        self.client.login(username="sarah", password="12345")
 
-        # подписываю его на 2го
+        #  подписываю его на 2го
         Follow.objects.create(user=self.user1, author=self.user2)
 
         self.post = Post.objects.create(text="My post!", author=self.user2)
@@ -134,7 +131,7 @@ class PostFollowTest(TestCase):
                 username="sarah", email="connor.s@skynet.com", password="12345")
         self.user2 = User.objects.create_user(
                 username="arny", email="arny.s@skynet.com", password="12345") 
-        self.client.force_login(self.user1)
+        self.client.login(username="sarah", password="12345")
 
         self.post = Post.objects.create(text="My post!", author=self.user2)
 
@@ -143,32 +140,24 @@ class PostFollowTest(TestCase):
         self.assertNotContains(response, 'My post!', status_code=200)
     
 
-class CommentTest(TestCase):
-    """проверка на возможность комментировать авторизованному пользователю"""
+class CommentsTest(TestCase):
     def setUp(self):
         self.client = Client() 
         self.user = User.objects.create_user(
                 username="sarah", email="connor.s@skynet.com", password="12345")
-        self.client.force_login(self.user)
-
+        
         self.post = Post.objects.create(text="My post!", author=self.user)
 
-    def test_comment(self):
+    def test_logined_user_comment(self):
+        """проверка на возможность комментировать авторизованному пользователю"""
+        self.client.login(username="sarah", password="12345")
+
         response = self.client.get("/sarah/1/comment/")
         self.assertEqual(response.status_code, 200)
 
-
-class NotCommentTest(TestCase):
-    """проверка на отсутствие возможности комментировать неавторизованному пользователю"""
-    def setUp(self):
-        self.client = Client() 
-        self.user = User.objects.create_user(
-                username="sarah", email="connor.s@skynet.com", password="12345")
-
-        self.post = Post.objects.create(text="My post!", author=self.user)
-
-    def test_not_comment(self):
+    def test_unlogined_user_comment(self):
+        """проверка на отсутствие возможности комментировать неавторизованному пользователю"""
         response = self.client.post(reverse('posts:add_comment', args=('sarah',1)), follow=True)
-        # редирект на страницу входа, а затем на страницу создания комментария
-        # так работает декоратор @login_required
+        #  редирект на страницу входа, а затем на страницу создания комментария
+        #  так работает декоратор @login_required
         self.assertRedirects(response, '/auth/login/?next=/sarah/1/comment/')

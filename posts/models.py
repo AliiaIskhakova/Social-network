@@ -17,10 +17,10 @@ class Post(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
     group = models.ForeignKey(Group, on_delete=models.CASCADE, blank=True,
     null=True, related_name="group") 
-    image = models.ImageField(upload_to='posts/', blank=True, null=True)  # поле для картинки
+    image = models.ImageField(upload_to='posts/', blank=True, null=True)  #  поле для картинки
 
     def __str__ (self):
-        #выводим текст поста
+        #  выводим текст поста
         return self.text
 
 class Comment(models.Model):
@@ -31,9 +31,9 @@ class Comment(models.Model):
 
 
 class Follow(models.Model):
-    #пользователь, который подписывается
+    #  пользователь, который подписывается
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="follower")
-    #пользователь, на которого подписываются
+    #  пользователь, на которого подписываются
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="following")
     
 
