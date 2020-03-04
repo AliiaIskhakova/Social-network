@@ -56,7 +56,7 @@ class PostNewTest(TestCase):
         self.assertEqual(response.status_code, 301)
 
         #  редактируем пост 
-        self.post.text ="Edited"
+        self.post.text = "Edited"
         self.post.save()
 
         urls = ('' , '/sarah/', '/sarah/1/')

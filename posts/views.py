@@ -14,8 +14,8 @@ def index(request):
     follow = False
 
     if request.user.is_authenticated:
-        following = Follow.objects.filter(user=request.user).exists()
-        follow = True if following else False
+        following = Follow.objects.filter(user=request.user)
+        follow = True if following.exists() else False  
         
     paginator = Paginator(post_list, 10) #  показывать по 10 записей на странице.
     page_number = request.GET.get('page') #  переменная в URL с номером запрошенной страницы
@@ -61,8 +61,8 @@ def profile(request, username):
     following = False
 
     if request.user.is_authenticated:
-        follow = Follow.objects.filter(user=request.user, author=author).exists()
-        following = True if follow else False
+        follow = Follow.objects.filter(user=request.user, author=author)
+        following = True if follow.exists() else False
     
     paginator = Paginator(posts, 10) 
     page_number = request.GET.get('page') 
@@ -78,7 +78,7 @@ def post_view(request, username, post_id):
     author = get_object_or_404(User, username=username)
 
     form = CommentForm()
-    comments = Comment.objects.filter(post=post).all()
+    comments = post.comment_post.all()
     comment_count = comments.count()
 
     page_count = Post.objects.filter(author=author).count()
@@ -120,7 +120,7 @@ def server_error(request):
 def add_comment(request, username, post_id):
     post = get_object_or_404(Post, pk=post_id)
     form = CommentForm(instance=post)
-    comments = Comment.objects.filter(post=post).all()
+    comments = post.comment_post.all()
 
     if request.method == 'POST':
         form = CommentForm(request.POST)
@@ -131,7 +131,7 @@ def add_comment(request, username, post_id):
             comment.post = post
             comment.save()
             return redirect('posts:post', username=post.author, post_id=post_id)
-        return render (request, 'post.html', {'form': form, 'post':post, 'comments':comments})
+        return render(request, 'post.html', {'form': form, 'post':post, 'comments':comments})
         
     return render(request, "post.html", {'form': form, 'post':post, 'comments':comments})
 
@@ -159,16 +159,16 @@ def profile_follow(request, username):
 
         uniq = Follow.objects.filter(user=follower, author=follow).count()
         if uniq:
-            return redirect ('posts:profile', username=username)
+            return redirect('posts:profile', username=username)
         Follow.objects.create(user=follower, author=follow)
         
-    return redirect ('posts:profile', username=username)
+    return redirect('posts:profile', username=username)
 
 
 @login_required
 def profile_unfollow(request, username):
-    follower = User.objects.get(username=request.user.username) #  кто отписывается
-    unfollow = User.objects.get(username=username) #  от кого отписывается
+    follower = get_object_or_404(User, username=request.user.username) #  кто отписывается
+    unfollow = get_object_or_404(User, username=username) #  от кого отписывается
     
     Follow.objects.filter(user=follower, author=unfollow).delete()
 
