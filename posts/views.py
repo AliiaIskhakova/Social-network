@@ -14,8 +14,7 @@ def index(request):
     follow = False
 
     if request.user.is_authenticated:
-        following = Follow.objects.filter(user=request.user)
-        follow = True if following.exists() else False  
+        follow = Follow.objects.filter(user=request.user).exists() 
         
     paginator = Paginator(post_list, 10) #  показывать по 10 записей на странице.
     page_number = request.GET.get('page') #  переменная в URL с номером запрошенной страницы
@@ -61,8 +60,7 @@ def profile(request, username):
     following = False
 
     if request.user.is_authenticated:
-        follow = Follow.objects.filter(user=request.user, author=author)
-        following = True if follow.exists() else False
+        following = Follow.objects.filter(user=request.user, author=author).exists()
     
     paginator = Paginator(posts, 10) 
     page_number = request.GET.get('page') 
