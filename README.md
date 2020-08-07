@@ -14,5 +14,10 @@
 3. Установите необходимые библиотеки
 <br>pip install -r requirements.txt
 
+4. Создать миграции
+<br>python manage.py migrate
+
 4. Запустить на локальном сервере
 <br>python manage.py runserver
+
+Развернутый проект находится по адресу https://ya-tube.ml/.
