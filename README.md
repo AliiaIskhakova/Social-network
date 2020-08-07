@@ -8,16 +8,16 @@
 <br><code>git clone <ссылка на репозиторий> <название локальной папки></code>
 
 2. Создайте и активируйте виртуальное окружение
-<br>python -m venv venv
-<br>venv\scripts\activate
+<br><code>python -m venv venv</code>
+<br><code>venv\scripts\activate</code>
 
 3. Установите необходимые библиотеки
-<br>pip install -r requirements.txt
+<br><code>pip install -r requirements.txt</code>
 
 4. Создать миграции
-<br>python manage.py migrate
+<br><code>python manage.py migrate</code>
 
 4. Запустить на локальном сервере
-<br>python manage.py runserver
+<br><code>python manage.py runserver</code>
 
 Развернутый проект находится по адресу https://ya-tube.ml/.
