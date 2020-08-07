@@ -11,7 +11,7 @@
 <br><code>python -m venv venv</code>
 <br><code>venv\scripts\activate</code>
 
-3. Установите необходимые библиотеки
+3. Установите необходимые пакеты
 <br><code>pip install -r requirements.txt</code>
 
 4. Создать миграции
