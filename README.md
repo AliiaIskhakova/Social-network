@@ -22,11 +22,20 @@ venv\scripts\activate
 ```
 
 3. Установите необходимые пакеты
-<br><code>pip install -r requirements.txt</code>
 
-4. Создать миграции
-<br><code>python manage.py migrate</code>
+```
+pip install -r requirements.txt
+```
 
-4. Запустить на локальном сервере
-<br><code>python manage.py runserver</code>
+4. Создайте миграции
+
+```
+python manage.py migrate
+```
+
+4. Запустите на локальном сервере
+
+```
+python manage.py runserver
+```
 
